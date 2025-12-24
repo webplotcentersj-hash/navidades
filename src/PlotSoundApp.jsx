@@ -732,11 +732,71 @@ export default function PlotSoundApp() {
 
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
 
+    // Múltiples osciladores para el efecto de rotor
     osc1.type = 'sawtooth';
-    osc1.frequency.value = 200;
+    osc1.frequency.value = 150;
     osc2.type = 'sawtooth';
-    osc2.frequency.value = 201; // Ligeramente desafinado para efecto de rotor
+    osc2.frequency.value = 151.5; // Desafinado para efecto de palas
+    osc3.type = 'sawtooth';
+    osc3.frequency.value = 152; // Tercer oscilador para más realismo
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.9;
+
+    // Modulación más rápida para simular las palas del rotor
+    const lfo1 = ctx.createOscillator();
+    lfo1.type = 'sine';
+    lfo1.frequency.value = 8; // Velocidad del rotor principal
+    const lfo1Gain = ctx.createGain();
+    lfo1Gain.gain.value = 0.5;
+
+    const lfo2 = ctx.createOscillator();
+    lfo2.type = 'sine';
+    lfo2.frequency.value = 16; // Rotor de cola más rápido
+    const lfo2Gain = ctx.createGain();
+    lfo2Gain.gain.value = 0.3;
+
+    lfo1.connect(lfo1Gain);
+    lfo1Gain.connect(gain.gain);
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(gain.gain);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    osc3.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    osc3.start();
+    noise.start();
+    lfo1.start();
+    lfo2.start();
+
+    return { oscs: [osc1, osc2, osc3, noise, lfo1, lfo2], gainNode: gain };
+  };
+
+  // 22. Avión
+  const synthAirplane = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+
+    // Dos osciladores para motor más realista
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 120;
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = 180;
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
@@ -745,15 +805,23 @@ export default function PlotSoundApp() {
     const gain = ctx.createGain();
     gain.gain.value = 0.9;
 
-    // Modulación para simular las palas del rotor
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 5; // Velocidad del rotor
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.4;
+    // Modulación más compleja para simular el motor del avión
+    const lfo1 = ctx.createOscillator();
+    lfo1.type = 'sine';
+    lfo1.frequency.value = 1.5;
+    const lfo1Gain = ctx.createGain();
+    lfo1Gain.gain.value = 0.4;
 
-    lfo.connect(lfoGain);
-    lfoGain.connect(gain.gain);
+    const lfo2 = ctx.createOscillator();
+    lfo2.type = 'sine';
+    lfo2.frequency.value = 3;
+    const lfo2Gain = ctx.createGain();
+    lfo2Gain.gain.value = 0.2;
+
+    lfo1.connect(lfo1Gain);
+    lfo1Gain.connect(gain.gain);
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(filter.frequency);
 
     osc1.connect(filter);
     osc2.connect(filter);
@@ -763,47 +831,10 @@ export default function PlotSoundApp() {
     osc1.start();
     osc2.start();
     noise.start();
-    lfo.start();
+    lfo1.start();
+    lfo2.start();
 
-    return { oscs: [osc1, osc2, noise, lfo], gainNode: gain };
-  };
-
-  // 22. Avión
-  const synthAirplane = (ctx, destination) => {
-    const noise = ctx.createBufferSource();
-    noise.buffer = createNoiseBuffer(ctx);
-    noise.loop = true;
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.value = 150;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 1000;
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0.9;
-
-    // Modulación para simular el motor del avión
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 2;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.3;
-
-    lfo.connect(lfoGain);
-    lfoGain.connect(gain.gain);
-
-    osc.connect(filter);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(destination);
-    osc.start();
-    noise.start();
-    lfo.start();
-
-    return { oscs: [osc, noise, lfo], gainNode: gain };
+    return { oscs: [osc1, osc2, noise, lfo1, lfo2], gainNode: gain };
   };
 
   // 23. Monos (Gritos de mono)
@@ -812,39 +843,49 @@ export default function PlotSoundApp() {
     const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
+    // Frecuencias más agudas para sonido de mono
     osc1.type = 'sawtooth';
-    osc1.frequency.value = 300;
+    osc1.frequency.value = 500;
     osc2.type = 'sawtooth';
-    osc2.frequency.value = 350;
+    osc2.frequency.value = 550;
 
-    // Modulación rápida para el grito
+    // Modulación más rápida y variada
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.value = 8;
+    lfo.frequency.value = 12;
     const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 100;
+    lfoGain.gain.value = 200;
 
     lfo.connect(lfoGain);
     lfoGain.connect(osc1.frequency);
     lfoGain.connect(osc2.frequency);
 
+    // Filtro para hacerlo más nasal
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 800;
+    filter.Q.value = 3;
+
     gain.gain.value = 0;
 
-    // Gritos intermitentes
+    // Gritos intermitentes más cortos y agudos
     const loop = setInterval(() => {
       const now = ctx.currentTime;
+      osc1.frequency.setValueAtTime(500, now);
+      osc2.frequency.setValueAtTime(550, now);
       gain.gain.setValueAtTime(0.9, now);
-      gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-    }, 1200);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    }, 1500);
 
     // Primer grito
     gain.gain.setValueAtTime(0.9, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.2);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
 
-    osc1.connect(gain);
-    osc2.connect(gain);
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
     gain.connect(destination);
     osc1.start();
     osc2.start();
@@ -855,73 +896,118 @@ export default function PlotSoundApp() {
 
   // 24. Perro (Ladrido)
   const synthDog = (ctx, destination) => {
-    const osc = ctx.createOscillator();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sawtooth';
-    osc.frequency.value = 400;
+    // Dos osciladores para sonido más rico
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 250;
+    osc2.type = 'square';
+    osc2.frequency.value = 300;
 
-    // Modulación para el ladrido
+    // Modulación más realista
     const lfo = ctx.createOscillator();
-    lfo.type = 'square';
-    lfo.frequency.value = 5;
+    lfo.type = 'sine';
+    lfo.frequency.value = 8;
     const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 150;
+    lfoGain.gain.value = 80;
 
     lfo.connect(lfoGain);
-    lfoGain.connect(osc.frequency);
+    lfoGain.connect(osc1.frequency);
+    lfoGain.connect(osc2.frequency);
+
+    // Filtro para hacerlo más realista
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 2;
 
     gain.gain.value = 0;
 
-    // Ladridos intermitentes
+    // Ladridos más realistas con variación
     const loop = setInterval(() => {
       const now = ctx.currentTime;
+      const freq1 = 250 + Math.random() * 50;
+      const freq2 = 300 + Math.random() * 50;
+      osc1.frequency.setValueAtTime(freq1, now);
+      osc2.frequency.setValueAtTime(freq2, now);
       gain.gain.setValueAtTime(0.9, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-    }, 800);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    }, 600 + Math.random() * 400);
 
     // Primer ladrido
     gain.gain.setValueAtTime(0.9, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
 
-    osc.connect(gain);
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
     gain.connect(destination);
-    osc.start();
+    osc1.start();
+    osc2.start();
     lfo.start();
 
-    return { oscs: [osc, lfo], gainNode: gain, interval: loop };
+    return { oscs: [osc1, osc2, lfo], gainNode: gain, interval: loop };
   };
 
   // 25. Gato (Maullido)
   const synthCat = (ctx, destination) => {
-    const osc = ctx.createOscillator();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
-    osc.frequency.linearRampToValueAtTime(500, ctx.currentTime + 0.6);
+    // Dos osciladores para sonido más rico
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(700, ctx.currentTime);
+    osc1.frequency.linearRampToValueAtTime(1000, ctx.currentTime + 0.2);
+    osc1.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.5);
+    osc1.frequency.linearRampToValueAtTime(750, ctx.currentTime + 0.7);
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(900, ctx.currentTime);
+    osc2.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.2);
+    osc2.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.5);
+    osc2.frequency.linearRampToValueAtTime(950, ctx.currentTime + 0.7);
+
+    // Filtro para sonido más nasal
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1000;
+    filter.Q.value = 4;
 
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.4);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
 
     // Maullidos intermitentes
     const loop = setInterval(() => {
       const now = ctx.currentTime;
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.linearRampToValueAtTime(800, now + 0.3);
-      osc.frequency.linearRampToValueAtTime(500, now + 0.6);
+      osc1.frequency.setValueAtTime(700, now);
+      osc1.frequency.linearRampToValueAtTime(1000, now + 0.2);
+      osc1.frequency.linearRampToValueAtTime(600, now + 0.5);
+      osc1.frequency.linearRampToValueAtTime(750, now + 0.7);
+      osc2.frequency.setValueAtTime(900, now);
+      osc2.frequency.linearRampToValueAtTime(1200, now + 0.2);
+      osc2.frequency.linearRampToValueAtTime(800, now + 0.5);
+      osc2.frequency.linearRampToValueAtTime(950, now + 0.7);
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.9, now + 0.1);
+      gain.gain.linearRampToValueAtTime(0.9, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.4);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-    }, 2000);
+    }, 2500);
 
-    osc.connect(gain);
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
     gain.connect(destination);
-    osc.start();
+    osc1.start();
+    osc2.start();
 
-    return { oscs: [osc], gainNode: gain, interval: loop };
+    return { oscs: [osc1, osc2], gainNode: gain, interval: loop };
   };
 
   // 26. Pájaro (Canto)
@@ -931,63 +1017,101 @@ export default function PlotSoundApp() {
     const gain = ctx.createGain();
 
     osc1.type = 'sine';
-    osc1.frequency.value = 1000;
+    osc1.frequency.value = 1500;
     osc2.type = 'sine';
-    osc2.frequency.value = 1200;
+    osc2.frequency.value = 1800;
 
-    // Modulación para el canto
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 3;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 200;
+    // Modulación más melódica para el canto
+    const lfo1 = ctx.createOscillator();
+    lfo1.type = 'sine';
+    lfo1.frequency.value = 4;
+    const lfo1Gain = ctx.createGain();
+    lfo1Gain.gain.value = 300;
 
-    lfo.connect(lfoGain);
-    lfoGain.connect(osc1.frequency);
-    lfoGain.connect(osc2.frequency);
+    const lfo2 = ctx.createOscillator();
+    lfo2.type = 'sine';
+    lfo2.frequency.value = 2;
+    const lfo2Gain = ctx.createGain();
+    lfo2Gain.gain.value = 0.3;
+
+    lfo1.connect(lfo1Gain);
+    lfo1Gain.connect(osc1.frequency);
+    lfo1Gain.connect(osc2.frequency);
+
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(gain.gain);
+
+    // Filtro para sonido más agudo y claro
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1200;
+    filter.Q.value = 2;
 
     gain.gain.value = 0.8;
 
-    osc1.connect(gain);
-    osc2.connect(gain);
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
     gain.connect(destination);
     osc1.start();
     osc2.start();
-    lfo.start();
+    lfo1.start();
+    lfo2.start();
 
-    return { oscs: [osc1, osc2, lfo], gainNode: gain };
+    return { oscs: [osc1, osc2, lfo1, lfo2], gainNode: gain };
   };
 
   // 27. Vaca (Mugido)
   const synthCow = (ctx, destination) => {
-    const osc = ctx.createOscillator();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.5);
-    osc.frequency.linearRampToValueAtTime(140, ctx.currentTime + 1);
+    // Dos osciladores para sonido más grave y rico
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(120, ctx.currentTime);
+    osc1.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.6);
+    osc1.frequency.linearRampToValueAtTime(130, ctx.currentTime + 1.2);
+
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(180, ctx.currentTime);
+    osc2.frequency.linearRampToValueAtTime(150, ctx.currentTime + 0.6);
+    osc2.frequency.linearRampToValueAtTime(195, ctx.currentTime + 1.2);
+
+    // Filtro para sonido más grave y nasal
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 2;
 
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.2);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + 0.8);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
 
     // Mugidos intermitentes
     const loop = setInterval(() => {
       const now = ctx.currentTime;
-      osc.frequency.setValueAtTime(150, now);
-      osc.frequency.linearRampToValueAtTime(120, now + 0.5);
-      osc.frequency.linearRampToValueAtTime(140, now + 1);
+      osc1.frequency.setValueAtTime(120, now);
+      osc1.frequency.linearRampToValueAtTime(100, now + 0.6);
+      osc1.frequency.linearRampToValueAtTime(130, now + 1.2);
+      osc2.frequency.setValueAtTime(180, now);
+      osc2.frequency.linearRampToValueAtTime(150, now + 0.6);
+      osc2.frequency.linearRampToValueAtTime(195, now + 1.2);
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.9, now + 0.2);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
-    }, 3000);
+      gain.gain.linearRampToValueAtTime(0.9, now + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.4, now + 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+    }, 3500);
 
-    osc.connect(gain);
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
     gain.connect(destination);
-    osc.start();
+    osc1.start();
+    osc2.start();
 
-    return { oscs: [osc], gainNode: gain, interval: loop };
+    return { oscs: [osc1, osc2], gainNode: gain, interval: loop };
   };
 
   // DATA DE LOS BOTONES
