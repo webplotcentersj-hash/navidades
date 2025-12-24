@@ -1177,7 +1177,7 @@ export default function PlotSoundApp() {
     { id: 'truck', label: 'Camión', icon: Truck, color: 'text-orange-600', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthTruckHorn },
     { id: 'airraid', label: 'Aérea', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-600/20', border: 'border-red-600', fn: synthAirRaid },
     { id: 'backup', label: 'Retroceso', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/20', border: 'border-emerald-500', fn: synthBackupBeep },
-    { id: 'jackhammer', label: 'Martillo', icon: Hammer, color: 'text-stone-400', bg: 'bg-stone-500/20', border: 'border-stone-500', fn: synthJackhammer },
+    { id: 'jackhammer', label: 'Martillo', icon: Hammer, color: 'text-stone-400', bg: 'bg-stone-500/20', border: 'border-stone-500', audioFile: '/martillo.mp3' },
     { id: 'burglar', label: 'Robo', icon: Bell, color: 'text-red-400', bg: 'bg-red-400/20', border: 'border-red-400', fn: synthBurglar },
     { id: 'laser', label: 'Láser', icon: Zap, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500', fn: synthLaser },
     { id: 'bells', label: 'Campanas', icon: Bell, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500', fn: synthBells },
