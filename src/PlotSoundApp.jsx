@@ -1184,6 +1184,7 @@ export default function PlotSoundApp() {
     { id: 'consiren', label: 'Sirena Obra', icon: Siren, color: 'text-orange-400', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthConstructionSiren },
     { id: 'bird', label: 'Pájaro', icon: Bird, color: 'text-green-300', bg: 'bg-green-500/20', border: 'border-green-500', fn: synthBird },
     { id: 'kulikitaka', label: 'Kulikitaka', icon: Music, color: 'text-pink-400', bg: 'bg-pink-600/20', border: 'border-pink-600', audioFile: '/kulikitaka.mp3' },
+    { id: 'christmas', label: 'Christmas', icon: Music, color: 'text-red-400', bg: 'bg-red-600/20', border: 'border-red-600', audioFile: '/christmas.mp3' },
   ];
 
   return (
