@@ -1185,6 +1185,7 @@ export default function PlotSoundApp() {
     { id: 'bird', label: 'Pájaro', icon: Bird, color: 'text-green-300', bg: 'bg-green-500/20', border: 'border-green-500', fn: synthBird },
     { id: 'kulikitaka', label: 'Kulikitaka', icon: Music, color: 'text-pink-400', bg: 'bg-pink-600/20', border: 'border-pink-600', audioFile: '/kulikitaka.mp3' },
     { id: 'christmas', label: 'Christmas', icon: Music, color: 'text-red-400', bg: 'bg-red-600/20', border: 'border-red-600', audioFile: '/christmas.mp3' },
+    { id: 'taladro', label: 'Taladro', icon: Wrench, color: 'text-blue-400', bg: 'bg-blue-600/20', border: 'border-blue-600', audioFile: '/taladro.mp3' },
   ];
 
   return (
