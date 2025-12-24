@@ -18,7 +18,12 @@ import {
   Music,
   Cog,
   Settings,
-  Gauge
+  Gauge,
+  Plane,
+  Bird,
+  Dog,
+  Cat,
+  Rabbit
 } from 'lucide-react';
 
 export default function PlotSoundApp() {
@@ -450,7 +455,7 @@ export default function PlotSoundApp() {
     filter.Q.value = 1;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.7;
+    gain.gain.value = 0.9;
 
     // Modulación para simular el movimiento de la sierra
     const lfo = ctx.createOscillator();
@@ -558,7 +563,7 @@ export default function PlotSoundApp() {
     filter.Q.value = 5;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.7;
+    gain.gain.value = 0.9;
 
     // Modulación rápida para simular el arco eléctrico
     const lfo = ctx.createOscillator();
@@ -594,7 +599,7 @@ export default function PlotSoundApp() {
     filter.frequency.value = 300;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.5;
+    gain.gain.value = 0.85;
 
     // Modulación para simular el ciclo del compresor
     const lfo = ctx.createOscillator();
@@ -635,7 +640,7 @@ export default function PlotSoundApp() {
     filter.frequency.value = 500;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.6;
+    gain.gain.value = 0.9;
 
     // Modulación para simular el movimiento hidráulico
     const lfo = ctx.createOscillator();
@@ -719,6 +724,272 @@ export default function PlotSoundApp() {
     return { oscs: [osc, lfo], gainNode: gain };
   };
 
+  // 21. Helicóptero
+  const synthHelicopter = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 200;
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = 201; // Ligeramente desafinado para efecto de rotor
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.9;
+
+    // Modulación para simular las palas del rotor
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 5; // Velocidad del rotor
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.4;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    noise.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, noise, lfo], gainNode: gain };
+  };
+
+  // 22. Avión
+  const synthAirplane = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 150;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.9;
+
+    // Modulación para simular el motor del avión
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 2;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.3;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    osc.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc.start();
+    noise.start();
+    lfo.start();
+
+    return { oscs: [osc, noise, lfo], gainNode: gain };
+  };
+
+  // 23. Monos (Gritos de mono)
+  const synthMonkey = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 300;
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = 350;
+
+    // Modulación rápida para el grito
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 8;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 100;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc1.frequency);
+    lfoGain.connect(osc2.frequency);
+
+    gain.gain.value = 0;
+
+    // Gritos intermitentes
+    const loop = setInterval(() => {
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0.9, now);
+      gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    }, 1200);
+
+    // Primer grito
+    gain.gain.setValueAtTime(0.9, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, lfo], gainNode: gain, interval: loop };
+  };
+
+  // 24. Perro (Ladrido)
+  const synthDog = (ctx, destination) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.value = 400;
+
+    // Modulación para el ladrido
+    const lfo = ctx.createOscillator();
+    lfo.type = 'square';
+    lfo.frequency.value = 5;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 150;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    gain.gain.value = 0;
+
+    // Ladridos intermitentes
+    const loop = setInterval(() => {
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0.9, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+    }, 800);
+
+    // Primer ladrido
+    gain.gain.setValueAtTime(0.9, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start();
+    lfo.start();
+
+    return { oscs: [osc, lfo], gainNode: gain, interval: loop };
+  };
+
+  // 25. Gato (Maullido)
+  const synthCat = (ctx, destination) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+    osc.frequency.linearRampToValueAtTime(500, ctx.currentTime + 0.6);
+
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+
+    // Maullidos intermitentes
+    const loop = setInterval(() => {
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.linearRampToValueAtTime(800, now + 0.3);
+      osc.frequency.linearRampToValueAtTime(500, now + 0.6);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.9, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+    }, 2000);
+
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start();
+
+    return { oscs: [osc], gainNode: gain, interval: loop };
+  };
+
+  // 26. Pájaro (Canto)
+  const synthBird = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.value = 1000;
+    osc2.type = 'sine';
+    osc2.frequency.value = 1200;
+
+    // Modulación para el canto
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 3;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 200;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc1.frequency);
+    lfoGain.connect(osc2.frequency);
+
+    gain.gain.value = 0.8;
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, lfo], gainNode: gain };
+  };
+
+  // 27. Vaca (Mugido)
+  const synthCow = (ctx, destination) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.5);
+    osc.frequency.linearRampToValueAtTime(140, ctx.currentTime + 1);
+
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+
+    // Mugidos intermitentes
+    const loop = setInterval(() => {
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(120, now + 0.5);
+      osc.frequency.linearRampToValueAtTime(140, now + 1);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.9, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+    }, 3000);
+
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start();
+
+    return { oscs: [osc], gainNode: gain, interval: loop };
+  };
+
   // DATA DE LOS BOTONES
   const soundBank = [
     { id: 'police', label: 'Policía', icon: Siren, color: 'text-blue-500', bg: 'bg-blue-500/20', border: 'border-blue-500', fn: synthSiren },
@@ -741,6 +1012,13 @@ export default function PlotSoundApp() {
     { id: 'excavator', label: 'Excavadora', icon: Construction, color: 'text-amber-600', bg: 'bg-amber-700/20', border: 'border-amber-700', fn: synthExcavator },
     { id: 'mixer', label: 'Mezcladora', icon: Cog, color: 'text-gray-500', bg: 'bg-gray-600/20', border: 'border-gray-600', fn: synthConcreteMixer },
     { id: 'consiren', label: 'Sirena Obra', icon: Siren, color: 'text-orange-400', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthConstructionSiren },
+    { id: 'helicopter', label: 'Helicóptero', icon: Plane, color: 'text-sky-400', bg: 'bg-sky-600/20', border: 'border-sky-600', fn: synthHelicopter },
+    { id: 'airplane', label: 'Avión', icon: Plane, color: 'text-blue-300', bg: 'bg-blue-500/20', border: 'border-blue-500', fn: synthAirplane },
+    { id: 'monkey', label: 'Mono', icon: Rabbit, color: 'text-amber-500', bg: 'bg-amber-700/20', border: 'border-amber-700', fn: synthMonkey },
+    { id: 'dog', label: 'Perro', icon: Dog, color: 'text-yellow-700', bg: 'bg-yellow-800/20', border: 'border-yellow-800', fn: synthDog },
+    { id: 'cat', label: 'Gato', icon: Cat, color: 'text-orange-400', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthCat },
+    { id: 'bird', label: 'Pájaro', icon: Bird, color: 'text-green-300', bg: 'bg-green-500/20', border: 'border-green-500', fn: synthBird },
+    { id: 'cow', label: 'Vaca', icon: Rabbit, color: 'text-stone-300', bg: 'bg-stone-600/20', border: 'border-stone-600', fn: synthCow },
   ];
 
   return (
