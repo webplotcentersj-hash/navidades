@@ -33,6 +33,9 @@ export default function PlotSoundApp() {
 
   // Mantiene referencia a los osciladores activos para poder detenerlos
   const activeNodesRef = useRef({});
+  
+  // Mantiene referencia a los archivos de audio HTML5
+  const audioFilesRef = useRef({});
 
   // Inicializar el contexto de audio con interacción del usuario
   const initAudio = () => {
@@ -46,6 +49,21 @@ export default function PlotSoundApp() {
   };
 
   const stopSound = (id) => {
+    // Detener archivos de audio HTML5
+    if (audioFilesRef.current[id]) {
+      const audio = audioFilesRef.current[id];
+      audio.pause();
+      audio.currentTime = 0;
+      delete audioFilesRef.current[id];
+      setActiveSounds(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+      return;
+    }
+
+    // Detener sonidos sintetizados
     if (activeNodesRef.current[id]) {
       const { oscs, gainNode, interval } = activeNodesRef.current[id];
 
@@ -72,11 +90,49 @@ export default function PlotSoundApp() {
   };
 
   const stopAll = () => {
+    // Detener todos los archivos de audio
+    Object.keys(audioFilesRef.current).forEach(id => stopSound(id));
+    // Detener todos los sonidos sintetizados
     Object.keys(activeNodesRef.current).forEach(id => stopSound(id));
   };
 
   // --- MÓDULO DE SÍNTESIS DE SONIDO ---
   // Genera sonidos matemáticamente para funcionar 100% offline
+
+  // Función para reproducir archivos de audio MP3
+  const playAudioFile = (id, audioPath) => {
+    // Si ya está sonando, lo paramos (toggle)
+    if (activeSounds[id]) {
+      stopSound(id);
+      return;
+    }
+
+    setActiveSounds(prev => ({ ...prev, [id]: true }));
+
+    const audio = new Audio(audioPath);
+    audio.volume = masterVolume;
+    audio.loop = true; // Repetir el audio
+    
+    audio.addEventListener('ended', () => {
+      setActiveSounds(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+      delete audioFilesRef.current[id];
+    });
+
+    audioFilesRef.current[id] = audio;
+    audio.play().catch(e => {
+      console.error('Error al reproducir audio:', e);
+      setActiveSounds(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+      delete audioFilesRef.current[id];
+    });
+  };
 
   const playTone = (id, generatorFn) => {
     initAudio();
@@ -1143,6 +1199,7 @@ export default function PlotSoundApp() {
     { id: 'cat', label: 'Gato', icon: Cat, color: 'text-orange-400', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthCat },
     { id: 'bird', label: 'Pájaro', icon: Bird, color: 'text-green-300', bg: 'bg-green-500/20', border: 'border-green-500', fn: synthBird },
     { id: 'cow', label: 'Vaca', icon: Rabbit, color: 'text-stone-300', bg: 'bg-stone-600/20', border: 'border-stone-600', fn: synthCow },
+    { id: 'kulikitaka', label: 'Kulikitaka', icon: Music, color: 'text-pink-400', bg: 'bg-pink-600/20', border: 'border-pink-600', audioFile: '/kulikitaka.mp3' },
   ];
 
   return (
@@ -1175,10 +1232,15 @@ export default function PlotSoundApp() {
               step="0.05"
               value={masterVolume}
               onChange={(e) => {
-                setMasterVolume(parseFloat(e.target.value));
+                const newVolume = parseFloat(e.target.value);
+                setMasterVolume(newVolume);
+                // Actualizar volumen de archivos de audio en tiempo real
+                Object.values(audioFilesRef.current).forEach(audio => {
+                  audio.volume = newVolume;
+                });
                 // Actualizar volumen en tiempo real si hay nodos activos
                 if (audioContextRef.current) {
-                  // Esto solo afecta a nuevos sonidos en esta implementación simple, 
+                  // Esto solo afecta a nuevos sonidos sintetizados en esta implementación simple, 
                   // pero es suficiente para una botonera rápida.
                 }
               }}
@@ -1203,7 +1265,13 @@ export default function PlotSoundApp() {
             return (
               <button
                 key={sound.id}
-                onClick={() => playTone(sound.id, sound.fn)}
+                onClick={() => {
+                  if (sound.audioFile) {
+                    playAudioFile(sound.id, sound.audioFile);
+                  } else if (sound.fn) {
+                    playTone(sound.id, sound.fn);
+                  }
+                }}
                 className={`
                   relative aspect-square flex flex-col items-center justify-center gap-2 rounded-xl border-2 transition-all duration-100 touch-manipulation
                   ${isActive
