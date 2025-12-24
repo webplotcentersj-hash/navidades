@@ -15,7 +15,10 @@ import {
   Wrench,
   Saw,
   Construction,
-  Music
+  Music,
+  Cog,
+  Settings,
+  Gauge
 } from 'lucide-react';
 
 export default function PlotSoundApp() {
@@ -543,6 +546,179 @@ export default function PlotSoundApp() {
     return { oscs: [osc1, osc2, noise, lfo], gainNode: gain };
   };
 
+  // 16. Soldadora (Welder)
+  const synthWelder = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 3000;
+    filter.Q.value = 5;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.7;
+
+    // Modulación rápida para simular el arco eléctrico
+    const lfo = ctx.createOscillator();
+    lfo.type = 'square';
+    lfo.frequency.value = 10;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.4;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    noise.start();
+    lfo.start();
+
+    return { oscs: [noise, lfo], gainNode: gain };
+  };
+
+  // 17. Compresor de Aire
+  const synthAirCompressor = (ctx, destination) => {
+    const osc = ctx.createOscillator();
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    osc.type = 'sawtooth';
+    osc.frequency.value = 60;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 300;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.5;
+
+    // Modulación para simular el ciclo del compresor
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 2; // Ciclo cada 0.5 segundos
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.3;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    osc.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc.start();
+    noise.start();
+    lfo.start();
+
+    return { oscs: [osc, noise, lfo], gainNode: gain };
+  };
+
+  // 18. Excavadora
+  const synthExcavator = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 100;
+    osc2.type = 'square';
+    osc2.frequency.value = 150;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 500;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.6;
+
+    // Modulación para simular el movimiento hidráulico
+    const lfo = ctx.createOscillator();
+    lfo.type = 'triangle';
+    lfo.frequency.value = 0.8;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.25;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    noise.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, noise, lfo], gainNode: gain };
+  };
+
+  // 19. Mezcladora de Concreto
+  const synthConcreteMixer = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.6;
+
+    // Modulación para simular el tambor girando
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 1.5; // Velocidad de rotación
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.3;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    noise.start();
+    lfo.start();
+
+    return { oscs: [noise, lfo], gainNode: gain };
+  };
+
+  // 20. Sirena de Obra
+  const synthConstructionSiren = (ctx, destination) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 1);
+
+    // LFO para el ciclo de la sirena
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.3; // Más lento que sirena de policía
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 200;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start();
+
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start();
+
+    return { oscs: [osc, lfo], gainNode: gain };
+  };
+
   // DATA DE LOS BOTONES
   const soundBank = [
     { id: 'police', label: 'Policía', icon: Siren, color: 'text-blue-500', bg: 'bg-blue-500/20', border: 'border-blue-500', fn: synthSiren },
@@ -560,6 +736,11 @@ export default function PlotSoundApp() {
     { id: 'saw', label: 'Sierra', icon: Saw, color: 'text-red-500', bg: 'bg-red-600/20', border: 'border-red-600', fn: synthSaw },
     { id: 'hammer', label: 'Golpe', icon: Hammer, color: 'text-yellow-600', bg: 'bg-yellow-600/20', border: 'border-yellow-600', fn: synthHammerHit },
     { id: 'machinery', label: 'Maquinaria', icon: Construction, color: 'text-orange-500', bg: 'bg-orange-700/20', border: 'border-orange-700', fn: synthHeavyMachinery },
+    { id: 'welder', label: 'Soldadora', icon: Zap, color: 'text-cyan-400', bg: 'bg-cyan-600/20', border: 'border-cyan-600', fn: synthWelder },
+    { id: 'compressor', label: 'Compresor', icon: Gauge, color: 'text-slate-400', bg: 'bg-slate-600/20', border: 'border-slate-600', fn: synthAirCompressor },
+    { id: 'excavator', label: 'Excavadora', icon: Construction, color: 'text-amber-600', bg: 'bg-amber-700/20', border: 'border-amber-700', fn: synthExcavator },
+    { id: 'mixer', label: 'Mezcladora', icon: Cog, color: 'text-gray-500', bg: 'bg-gray-600/20', border: 'border-gray-600', fn: synthConcreteMixer },
+    { id: 'consiren', label: 'Sirena Obra', icon: Siren, color: 'text-orange-400', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthConstructionSiren },
   ];
 
   return (
