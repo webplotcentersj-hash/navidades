@@ -526,7 +526,7 @@ export default function PlotSoundApp() {
     filter.frequency.value = 400;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.6;
+    gain.gain.value = 0.9;
 
     // Modulación lenta para simular el motor
     const lfo = ctx.createOscillator();
@@ -676,7 +676,7 @@ export default function PlotSoundApp() {
     filter.frequency.value = 600;
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.6;
+    gain.gain.value = 0.85;
 
     // Modulación para simular el tambor girando
     const lfo = ctx.createOscillator();
