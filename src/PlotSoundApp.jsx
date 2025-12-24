@@ -11,7 +11,11 @@ import {
   Zap,
   Radio,
   Hammer,
-  VolumeX
+  VolumeX,
+  Wrench,
+  Saw,
+  Construction,
+  Music
 } from 'lucide-react';
 
 export default function PlotSoundApp() {
@@ -305,6 +309,240 @@ export default function PlotSoundApp() {
     return { oscs: [osc], gainNode: gain, duration: 0.3 };
   };
 
+  // 10. Jingle Bells (Campanitas Navideñas)
+  const synthJingleBells = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Tres tonos diferentes para simular cascabeles
+    osc1.type = 'sine';
+    osc1.frequency.value = 800;
+    osc2.type = 'sine';
+    osc2.frequency.value = 1000;
+    osc3.type = 'sine';
+    osc3.frequency.value = 1200;
+
+    // Modulación rápida para el efecto de cascabel
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 8; // Vibración rápida
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 50;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc1.frequency);
+    lfoGain.connect(osc2.frequency);
+    lfoGain.connect(osc3.frequency);
+
+    // Gating para el ritmo de cascabeles
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    const loop = setInterval(() => {
+      gain.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.1);
+    }, 200);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    osc3.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    osc3.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, osc3, lfo], gainNode: gain, interval: loop };
+  };
+
+  // 11. Campanas (Church Bells)
+  const synthBells = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Frecuencias armónicas para sonido de campana
+    osc1.type = 'sine';
+    osc1.frequency.value = 523.25; // Do5
+    osc2.type = 'sine';
+    osc2.frequency.value = 659.25; // Mi5
+    osc3.type = 'sine';
+    osc3.frequency.value = 783.99; // Sol5
+
+    // Envolvente de campana (ataque rápido, decay lento)
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    osc3.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    osc3.start();
+
+    // Repetir cada 3 segundos
+    const loop = setInterval(() => {
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(1, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 2);
+    }, 3000);
+
+    return { oscs: [osc1, osc2, osc3], gainNode: gain, interval: loop };
+  };
+
+  // 12. Taladro Eléctrico
+  const synthDrill = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 2;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    // Modulación de frecuencia para simular el taladro
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 5; // Velocidad del taladro
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 500;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+
+    // Variación de volumen
+    const volumeLoop = setInterval(() => {
+      gain.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.1);
+    }, 150);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    noise.start();
+    lfo.start();
+
+    return { oscs: [noise, lfo], gainNode: gain, interval: volumeLoop };
+  };
+
+  // 13. Sierra Circular
+  const synthSaw = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1000;
+    filter.Q.value = 1;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.7;
+
+    // Modulación para simular el movimiento de la sierra
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sawtooth';
+    lfo.frequency.value = 3;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.3;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    noise.start();
+    lfo.start();
+
+    return { oscs: [noise, lfo], gainNode: gain };
+  };
+
+  // 14. Martillo Golpeando
+  const synthHammerHit = (ctx, destination) => {
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 500;
+    filter.Q.value = 3;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    // Repetir golpes cada 0.8 segundos
+    const loop = setInterval(() => {
+      gain.gain.setValueAtTime(1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    }, 800);
+
+    // Primer golpe inmediato
+    gain.gain.setValueAtTime(1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    noise.start();
+
+    return { oscs: [noise], gainNode: gain, interval: loop };
+  };
+
+  // 15. Retroexcavadora / Maquinaria Pesada
+  const synthHeavyMachinery = (ctx, destination) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const noise = ctx.createBufferSource();
+    noise.buffer = createNoiseBuffer(ctx);
+    noise.loop = true;
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 80;
+    osc2.type = 'square';
+    osc2.frequency.value = 120;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.6;
+
+    // Modulación lenta para simular el motor
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.5;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.2;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(destination);
+    osc1.start();
+    osc2.start();
+    noise.start();
+    lfo.start();
+
+    return { oscs: [osc1, osc2, noise, lfo], gainNode: gain };
+  };
+
   // DATA DE LOS BOTONES
   const soundBank = [
     { id: 'police', label: 'Policía', icon: Siren, color: 'text-blue-500', bg: 'bg-blue-500/20', border: 'border-blue-500', fn: synthSiren },
@@ -312,10 +550,16 @@ export default function PlotSoundApp() {
     { id: 'truck', label: 'Camión', icon: Truck, color: 'text-orange-600', bg: 'bg-orange-600/20', border: 'border-orange-600', fn: synthTruckHorn },
     { id: 'airraid', label: 'Aérea', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-600/20', border: 'border-red-600', fn: synthAirRaid },
     { id: 'backup', label: 'Retroceso', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/20', border: 'border-emerald-500', fn: synthBackupBeep },
-    { id: 'jackhammer', label: 'Taladro', icon: Hammer, color: 'text-stone-400', bg: 'bg-stone-500/20', border: 'border-stone-500', fn: synthJackhammer },
+    { id: 'jackhammer', label: 'Martillo', icon: Hammer, color: 'text-stone-400', bg: 'bg-stone-500/20', border: 'border-stone-500', fn: synthJackhammer },
     { id: 'burglar', label: 'Robo', icon: Bell, color: 'text-red-400', bg: 'bg-red-400/20', border: 'border-red-400', fn: synthBurglar },
     { id: 'static', label: 'Estática', icon: Radio, color: 'text-gray-400', bg: 'bg-gray-500/20', border: 'border-gray-400', fn: synthStatic },
     { id: 'laser', label: 'Láser', icon: Zap, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500', fn: synthLaser },
+    { id: 'jingle', label: 'Cascabel', icon: Music, color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500', fn: synthJingleBells },
+    { id: 'bells', label: 'Campanas', icon: Bell, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500', fn: synthBells },
+    { id: 'drill', label: 'Taladro', icon: Wrench, color: 'text-blue-400', bg: 'bg-blue-600/20', border: 'border-blue-600', fn: synthDrill },
+    { id: 'saw', label: 'Sierra', icon: Saw, color: 'text-red-500', bg: 'bg-red-600/20', border: 'border-red-600', fn: synthSaw },
+    { id: 'hammer', label: 'Golpe', icon: Hammer, color: 'text-yellow-600', bg: 'bg-yellow-600/20', border: 'border-yellow-600', fn: synthHammerHit },
+    { id: 'machinery', label: 'Maquinaria', icon: Construction, color: 'text-orange-500', bg: 'bg-orange-700/20', border: 'border-orange-700', fn: synthHeavyMachinery },
   ];
 
   return (
